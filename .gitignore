@@ -16,7 +16,9 @@ venv/
 .DS_Store
 Thumbs.db
 
-firebase-keys.json
+firebase-key.json
+*.json
+.env
 /uploads/
 env/
 venv/
