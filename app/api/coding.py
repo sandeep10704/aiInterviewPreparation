@@ -1,90 +1,32 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-from typing import List
-
+from fastapi import APIRouter, Depends
+from app.core.security import get_current_user
+from app.services.coding_service import generate_coding_set
+from app.models.coding_submit_schema import CodingSubmitRequest
+from app.services.coding_service import submit_coding_solution
 router = APIRouter()
 
 
-class CodingQuestion(BaseModel):
-    coding_question_id: str
-    title: str
-    description: str
+@router.get("/questions")
+async def get_coding_questions(
+    user_id: str = Depends(get_current_user)
+):
 
+    coding_set_id, questions = await generate_coding_set(user_id)
 
-class CodingQuestionSetResponse(BaseModel):
-    coding_set_id: str
-    questions: List[CodingQuestion]
-
-
-class CodingAnswerRequest(BaseModel):
-    coding_set_id: str
-    answers: dict  # {coding_question_id: code}
-
-
-# -------------------------
-# Normal Coding Questions
-# -------------------------
-
-@router.get("/normal", response_model=CodingQuestionSetResponse)
-def get_normal_coding_questions():
     return {
-        "coding_set_id": "normal_001",
-        "questions": [
-            {
-                "coding_question_id": "nc1",
-                "title": "Two Sum",
-                "description": "Find two numbers that add to target."
-            }
-        ]
+        "coding_set_id": coding_set_id,
+        "questions": questions
     }
 
+@router.post("/submit")
+async def submit_code(
+    payload: CodingSubmitRequest,
+    user_id: str = Depends(get_current_user)
+):
 
-@router.post("/normal/answers")
-def submit_normal_coding_answers(payload: CodingAnswerRequest):
-    return {"message": "Normal coding answers submitted"}
-
-
-# -------------------------
-# Resume-Based Coding
-# -------------------------
-
-@router.get("/resume/{resume_id}", response_model=CodingQuestionSetResponse)
-def get_resume_based_coding_questions(resume_id: str):
-    return {
-        "coding_set_id": "resume_001",
-        "questions": [
-            {
-                "coding_question_id": "rc1",
-                "title": "React State Optimization",
-                "description": "Optimize a large component rendering."
-            }
-        ]
-    }
-
-
-@router.post("/resume/answers")
-def submit_resume_coding_answers(payload: CodingAnswerRequest):
-    return {"message": "Resume coding answers submitted"}
-
-
-# -------------------------
-# Job Role-Based Coding
-# -------------------------
-
-@router.get("/job/{role}", response_model=CodingQuestionSetResponse)
-def get_job_role_coding_questions(role: str):
-    return {
-        "coding_set_id": "job_001",
-        "questions": [
-            {
-                "coding_question_id": "jc1",
-                "title": "Backend Rate Limiter",
-                "description": "Design a rate limiter system."
-            }
-        ]
-    }
-
-
-@router.post("/job/answers")
-def submit_job_role_coding_answers(payload: CodingAnswerRequest):
-    return {"message": "Job role coding answers submitted"}
+    return await submit_coding_solution(
+        user_id,
+        payload.coding_set_id,
+        payload.question_index,
+        payload.code
+    )
