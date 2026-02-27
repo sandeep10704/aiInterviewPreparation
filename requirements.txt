@@ -1,0 +1,17 @@
+tavily
+fastapi
+uvicorn
+pydantic
+python-dotenv
+langgraph
+requests
+langchain
+langchain-openai
+langchain-core
+langchain-community
+PyPDF2
+python-multipart
+firebase-admin
+supabase
+dotenv
+pydantic-settings
