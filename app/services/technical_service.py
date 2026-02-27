@@ -112,3 +112,86 @@ async def submit_answers(user_id: str, technical_set_id: str, answers: dict):
     )
 
     return evaluation_data
+
+
+async def get_master_technical_sets(user_id: str):
+
+    sets_ref = db.collection("technical_questions") \
+        .document(user_id) \
+        .collection("sets")
+
+    docs = sets_ref.stream()
+
+    results = []
+
+    for doc in docs:
+        data = doc.to_dict()
+
+        results.append({
+            "technical_set_id": data.get("technical_set_id"),
+            "status": data.get("status"),
+            "created_at": data.get("created_at")
+        })
+
+    return results
+
+async def get_or_create_user_technical_set(
+    user_id: str,
+    technical_set_id: str
+):
+
+    # ---------- USER DOC ----------
+    user_doc_ref = db.collection("users") \
+        .document(user_id) \
+        .collection("technical_questions") \
+        .document(technical_set_id)
+
+    user_doc = user_doc_ref.get()
+
+    # ✅ If already exists → return directly
+    if user_doc.exists:
+        data = user_doc.to_dict()
+
+        return {
+            "technical_set_id": technical_set_id,
+            "questions": data.get("questions"),
+            "status": data.get("status"),
+            "answers": data.get("answers", {})
+        }
+
+    # ---------- MASTER DOC ----------
+    master_ref = db.collection("technical_questions") \
+        .document(user_id) \
+        .collection("sets") \
+        .document(technical_set_id)
+
+    master_doc = master_ref.get()
+
+    if not master_doc.exists:
+        raise HTTPException(
+            status_code=404,
+            detail="Technical set not found"
+        )
+
+    master_data = master_doc.to_dict()
+
+    # ---------- CREATE USER COPY ----------
+    user_doc_ref.set({
+        "technical_set_id": technical_set_id,
+        "questions": master_data.get("questions", []),
+        "answers": {},
+        "evaluations": [],
+        "overall_score": None,
+        "created_at": master_data.get("created_at"),
+        "submitted_at": None,
+        "evaluated_at": None,
+        "status": "pending",
+        "started_at": datetime.utcnow()
+    })
+
+    return {
+        "technical_set_id": technical_set_id,
+        "questions": master_data.get("questions"),
+        "status": "pending",
+        "answers": {}
+    }
