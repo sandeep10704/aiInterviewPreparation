@@ -1,8 +1,9 @@
+from http.client import HTTPException
 import uuid
 from datetime import datetime
 from app.core.firebase import db
 from app.services.technical_graph import technical_graph
-
+from app.services.evaluation_service import evaluate_technical_answers
 
 async def generate_technical_set(user_id: str):
 
@@ -55,29 +56,59 @@ async def generate_technical_set(user_id: str):
 
     return technical_set_id, questions
 
-from app.services.evaluation_service import evaluate_technical_answers
+
 
 
 async def submit_answers(user_id: str, technical_set_id: str, answers: dict):
 
-    doc_ref = db.collection("users") \
+    user_doc_ref = db.collection("users") \
         .document(user_id) \
         .collection("technical_questions") \
         .document(technical_set_id)
 
-    doc = doc_ref.get()
+    user_doc = user_doc_ref.get()
 
-    if not doc.exists:
-        raise HTTPException(status_code=404, detail="Technical set not found")
+    
+    if not user_doc.exists:
 
-    # Store answers
-    doc_ref.update({
+        master_ref = db.collection("technical_questions") \
+            .document(user_id) \
+            .collection("sets") \
+            .document(technical_set_id)
+
+        master_doc = master_ref.get()
+
+        if not master_doc.exists:
+            raise HTTPException(
+                status_code=404,
+                detail="Technical set not found anywhere"
+            )
+
+        master_data = master_doc.to_dict()
+
+   
+        user_doc_ref.set({
+            "technical_set_id": technical_set_id,
+            "questions": master_data.get("questions", []),
+            "answers": {},
+            "evaluations": [],
+            "overall_score": None,
+            "created_at": master_data.get("created_at"),
+            "submitted_at": None,
+            "evaluated_at": None,
+            "status": "pending"
+        })
+
+    
+    user_doc_ref.update({
         "answers": answers,
         "submitted_at": datetime.utcnow(),
         "status": "submitted"
     })
 
-    # Evaluate immediately
-    evaluation_data = await evaluate_technical_answers(user_id, technical_set_id)
+    evaluation_data = await evaluate_technical_answers(
+        user_id,
+        technical_set_id
+    )
 
     return evaluation_data
