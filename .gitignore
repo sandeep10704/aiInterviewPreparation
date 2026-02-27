@@ -18,5 +18,6 @@ Thumbs.db
 
 firebase-keys.json
 /uploads/
-
+env/
+venv/
 .vscode/
