@@ -16,16 +16,16 @@ app = FastAPI(
     title="AI Interview Preparation API",
     version="1.0.0",
     description="""
-🚀 AI Interview Preparation Platform API
+AI Interview Preparation Platform API
 
 This backend provides intelligent interview preparation features including:
 
-✅ Resume parsing and analysis  
-✅ Technical interview question generation  
-✅ HR interview simulation  
-✅ Coding interview practice  
-✅ Code execution playground  
-✅ Automated evaluation & feedback
+ Resume parsing and analysis  
+ Technical interview question generation  
+ HR interview simulation  
+ Coding interview practice  
+ Code execution playground  
+ Automated evaluation & feedback
 
 Authentication:
 Most endpoints require Firebase Bearer Token authentication.
