@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     
     TAVILY_API_KEY: str
 
+    FIREBASE_CREDENTIALS: str
     class Config:
         env_file = ".env"
         extra = "ignore"
