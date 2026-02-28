@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from app.core.firebase import db
-from app.services.code_execution_service import run_code
+from app.services.coding.code_execution_service import run_code
 
 
 async def run_user_code_preview(

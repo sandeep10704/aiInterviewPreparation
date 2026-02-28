@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import Dict
 from app.core.security import get_current_user
-from app.services.hr_service import (
+from app.services.hr.hr_service import (
     generate_hr_set,
     submit_hr_answers
 )

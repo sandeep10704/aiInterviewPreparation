@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends
 from app.core.security import get_current_user
-from app.services.technical_service import (
+from app.services.technical.technical_service import (
     generate_technical_set,
     get_or_create_user_technical_set,
     submit_answers,
     get_master_technical_sets,
 )
-from app.models.technical_request_schema import TechnicalAnswerRequest
+from app.schemas.technical.technical_request_schema import TechnicalAnswerRequest
 
 # ---------------------------------------------------------
 # Technical Interview Router

@@ -1,8 +1,8 @@
 import uuid
 from datetime import datetime
 from app.core.firebase import db
-from app.services.coding_graph import coding_graph
-from app.services.coding_evaluation_service import evaluate_code
+from app.services.coding.coding_graph import coding_graph
+from app.services.coding.coding_evaluation_service import evaluate_code
 
 async def generate_coding_set(user_id: str):
 

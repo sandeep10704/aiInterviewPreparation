@@ -1,8 +1,8 @@
 from datetime import datetime
 from fastapi import HTTPException
 from app.core.firebase import db
-from app.services.llm_core import llm
-from app.models.hr_evaluation_schema import HREvaluationSet
+from app.services.llm.llm_core import llm
+from app.schemas.hr.hr_evaluation_schema import HREvaluationSet
 
 async def evaluate_hr_answers(user_id, hr_set_id):
 

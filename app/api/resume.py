@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, Depends
 from app.core.security import get_current_user
-from app.services.resume_service import handle_resume_upload
+from app.services.resume.resume_service import handle_resume_upload
 
 # ---------------------------------------------------------
 # Resume Management Router

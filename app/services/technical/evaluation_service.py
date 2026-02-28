@@ -1,8 +1,8 @@
 from datetime import datetime
 from fastapi import HTTPException
 from app.core.firebase import db
-from app.services.llm_core import llm
-from app.models.evaluation_schema import EvaluationSet
+from app.services.llm.llm_core import llm
+from app.schemas.technical.evaluation_schema import EvaluationSet
 
 
 async def evaluate_technical_answers(user_id: str, technical_set_id: str):

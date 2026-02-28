@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from app.core.supabase_client import supabase
 from app.services.user_service import update_user_resume_full
-from app.services.resume_parser_service import extract_text_from_url, parse_resume
+from app.services.resume.resume_parser_service import extract_text_from_url, parse_resume
 
 
 async def handle_resume_upload(file, user_id: str):

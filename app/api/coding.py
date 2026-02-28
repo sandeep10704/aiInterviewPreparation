@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
 from app.core.security import get_current_user
-from app.services.coding_service import generate_coding_set, submit_coding_solution
-from app.models.coding_submit_schema import CodingSubmitRequest
-from app.models.coding_run_schema import CodingRunRequest
-from app.services.coding_runner_service import run_user_code_preview
-from app.models.coding_playground_schema import CodingPlaygroundRequest
-from app.services.coding_playground_service import run_playground_code
+from app.services.coding.coding_service import generate_coding_set, submit_coding_solution
+from app.schemas.coding.coding_submit_schema import CodingSubmitRequest
+from app.schemas.coding.coding_run_schema import CodingRunRequest
+from app.services.coding.coding_runner_service import run_user_code_preview
+from app.schemas.coding.coding_playground_schema import CodingPlaygroundRequest
+from app.services.coding.coding_playground_service import run_playground_code
 
 # ---------------------------------------------------------
 # Coding Interview Router

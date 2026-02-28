@@ -2,9 +2,9 @@ from typing import TypedDict, List
 from langgraph.graph import StateGraph
 from tavily import TavilyClient
 
-from app.services.llm_core import llm
+from app.services.llm.llm_core import llm
 from app.core.config import settings
-from app.models.coding_schema import CodingQuestionSet
+from app.schemas.coding.coding_schema import CodingQuestionSet
 
 
 tavily = TavilyClient(api_key=settings.TAVILY_API_KEY)

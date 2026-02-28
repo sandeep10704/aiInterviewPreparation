@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from app.core.firebase import db
-from app.services.hr_graph import hr_graph
+from app.services.hr.hr_graph import hr_graph
 
 
 async def generate_hr_set(user_id: str, role: str, company: str):
@@ -44,7 +44,7 @@ async def generate_hr_set(user_id: str, role: str, company: str):
 
     return hr_set_id, questions
 
-from app.services.hr_evaluation_service import evaluate_hr_answers
+from app.services.hr.hr_evaluation_service import evaluate_hr_answers
 
 async def submit_hr_answers(user_id: str, hr_set_id: str, answers: dict):
 

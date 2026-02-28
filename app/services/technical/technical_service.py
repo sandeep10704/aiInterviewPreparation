@@ -2,8 +2,8 @@ from http.client import HTTPException
 import uuid
 from datetime import datetime
 from app.core.firebase import db
-from app.services.technical_graph import technical_graph
-from app.services.evaluation_service import evaluate_technical_answers
+from app.services.technical.technical_graph import technical_graph
+from app.services.technical.evaluation_service import evaluate_technical_answers
 
 async def generate_technical_set(user_id: str):
 

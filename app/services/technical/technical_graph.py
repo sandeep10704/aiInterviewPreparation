@@ -4,8 +4,8 @@ import random
 from typing import TypedDict, List, Dict
 from tavily import TavilyClient
 from langgraph.graph import StateGraph
-from app.services.llm_core import llm
-from app.models.technical_schema import QuestionSet
+from app.services.llm.llm_core import llm
+from app.schemas.technical.technical_schema import QuestionSet
 from app.core.config import settings 
 
 class GraphState(TypedDict):

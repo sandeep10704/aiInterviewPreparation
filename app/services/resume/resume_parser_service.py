@@ -2,8 +2,8 @@ import requests
 import io
 import PyPDF2
 from langchain_core.prompts import ChatPromptTemplate
-from app.services.llm_core import llm
-from app.models.resume_schema import ResumeSchema
+from app.services.llm.llm_core import llm
+from app.schemas.resume.resume_schema import ResumeSchema
 
 
 def extract_text_from_url(url: str) -> str:

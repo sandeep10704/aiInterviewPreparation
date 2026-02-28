@@ -2,8 +2,8 @@ import random
 from typing import TypedDict, List, Dict
 
 from langgraph.graph import StateGraph
-from app.services.llm_core import llm
-from app.models.hr_schema import HRQuestionSet
+from app.services.llm.llm_core import llm
+from app.schemas.hr.hr_schema import HRQuestionSet
 
 class HRGraphState(TypedDict):
     role: str
