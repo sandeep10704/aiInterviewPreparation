@@ -23,11 +23,10 @@ async def run_user_code_preview(
         raise HTTPException(404, "Coding set not found")
 
     data = doc.to_dict()
-    questions = data.get("questions", [])
-    print("Questions:", questions)
-    # ---------- FIND QUESTION ----------
-    questions = data.get("questions", {})
 
+    questions = data.get("questions", [])
+
+    # handle dict/list structure safely
     if isinstance(questions, dict):
         questions = list(questions.values())
 
@@ -36,7 +35,8 @@ async def run_user_code_preview(
 
     question = questions[question_no]
     test_cases = question.get("test_cases", [])
-    # ---------- RUN ONLY FIRST 3 TEST CASES ----------
+
+    # ---------- RUN FIRST 3 TEST CASES ----------
     results = []
     passed = 0
 
@@ -48,9 +48,15 @@ async def run_user_code_preview(
             language=language
         )
 
-        output = execution["output"]
+        output = execution.get("output", "").strip()
+        error = execution.get("error", "").strip()
+        status = execution.get("status", "failed")
 
-        success = output == test["output"]
+        # ✅ if error exists → auto fail
+        if error:
+            success = False
+        else:
+            success = output == test["output"].strip()
 
         if success:
             passed += 1
@@ -59,8 +65,14 @@ async def run_user_code_preview(
             "input": test["input"],
             "expected": test["output"],
             "output": output,
+            "error": error,        # ⭐ added
+            "status": status,      # ⭐ added
             "passed": success
         })
+
+        # ⭐ OPTIONAL: stop early on compile error
+        if error and status != "success":
+            break
 
     return {
         "question_no": question_no,

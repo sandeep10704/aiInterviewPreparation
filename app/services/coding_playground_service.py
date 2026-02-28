@@ -16,5 +16,7 @@ async def run_playground_code(
     return {
         "language": language,
         "input": stdin,
-        "output": result.get("output")
+        "output": result.get("output", ""),
+        "error": result.get("error", ""),
+        "status": result.get("status", "")
     }

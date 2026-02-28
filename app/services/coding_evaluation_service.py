@@ -13,9 +13,15 @@ async def evaluate_code(script: str, test_cases: list):
             stdin_input=test["input"]
         )
 
-        output = execution["output"]
+        output = execution.get("output", "").strip()
+        error = execution.get("error", "").strip()
+        status = execution.get("status", "failed")
 
-        success = output == test["output"]
+        # ✅ if error exists → test automatically fails
+        if error:
+            success = False
+        else:
+            success = output == test["output"].strip()
 
         if success:
             passed += 1
@@ -24,10 +30,12 @@ async def evaluate_code(script: str, test_cases: list):
             "input": test["input"],
             "expected": test["output"],
             "output": output,
+            "error": error,          # ⭐ added
+            "status": status,        # ⭐ added
             "passed": success
         })
 
-    score = int((passed / len(test_cases)) * 10)
+    score = int((passed / len(test_cases)) * 10) if test_cases else 0
 
     return {
         "results": results,
