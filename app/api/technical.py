@@ -1,3 +1,4 @@
+from app.services.technical.realtime_service import update_answer_and_evaluate
 from fastapi import APIRouter, Depends
 from app.core.security import get_current_user
 from app.services.technical.technical_service import (
@@ -7,7 +8,9 @@ from app.services.technical.technical_service import (
     get_master_technical_sets,
 )
 from app.schemas.technical.technical_request_schema import TechnicalAnswerRequest
-
+import json
+from fastapi import WebSocket
+from app.core.firebase import verify_token
 # ---------------------------------------------------------
 # Technical Interview Router
 # ---------------------------------------------------------
@@ -21,6 +24,87 @@ from app.schemas.technical.technical_request_schema import TechnicalAnswerReques
 router = APIRouter(tags=["Technical"])
 
 
+# @router.websocket("/ws")
+# async def technical_ws(websocket: WebSocket):
+#     await websocket.accept()
+#     print("WebSocket connected")
+
+
+
+@router.websocket("/ws")
+async def technical_ws(websocket: WebSocket):
+
+    print("STEP 1: WS HIT")
+    print("HEADERS:", websocket.headers)
+    print("QUERY:", websocket.query_params)
+
+    # ✅ Try query param first (Postman / frontend)
+    token = websocket.query_params.get("token")
+    print("STEP 2: TOKEN FROM QUERY:", token)
+
+    # ✅ Fallback to Authorization header
+    if not token:
+        auth_header = websocket.headers.get("authorization")
+        if auth_header:
+            try:
+                token = auth_header.split(" ")[1]
+                print("STEP 3: TOKEN FROM HEADER:", token)
+            except:
+                print("STEP 3: INVALID AUTH HEADER FORMAT")
+
+    # ❌ No token → close
+    if not token:
+        print("STEP 4: NO TOKEN FOUND")
+        await websocket.close(code=1008)
+        return
+
+    # ✅ Verify token
+    try:
+        decoded = verify_token(token)
+        user_id = decoded["uid"]
+        print("STEP 5: USER ID:", user_id)
+    except Exception as e:
+        print("STEP 5: TOKEN ERROR:", e)
+        await websocket.close(code=1008)
+        return
+
+    # ✅ Accept connection
+    await websocket.accept()
+    print("STEP 6: CONNECTION ACCEPTED")
+
+    try:
+        while True:
+            print("STEP 7: WAITING FOR MESSAGE...")
+
+            data = await websocket.receive_text()
+            print("STEP 8: RECEIVED RAW:", data)
+
+            try:
+                parsed = json.loads(data)
+                print("STEP 9: PARSED:", parsed)
+            except Exception as e:
+                print("STEP 9: JSON ERROR:", e)
+                await websocket.send_json({"error": "Invalid JSON"})
+                continue
+
+            # ✅ Process logic
+            try:
+                result = await update_answer_and_evaluate(
+                    user_id,
+                    parsed.get("technical_set_id"),
+                    parsed.get("question_no"),
+                    parsed.get("answer")
+                )
+
+                print("STEP 10: RESULT:", result)
+                await websocket.send_json(result)
+
+            except Exception as e:
+                print("STEP 10: PROCESS ERROR:", e)
+                await websocket.send_json({"error": "Processing failed"})
+
+    except Exception as e:
+        print("STEP FINAL ERROR:", e)
 # ---------------------------------------------------------
 # Generate Technical Questions
 # ---------------------------------------------------------
