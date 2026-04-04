@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, WebSocket
 from pydantic import BaseModel
 from typing import Dict
@@ -149,7 +151,7 @@ async def hr_ws(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             print("HR WS RECEIVED:", data)
-
+            print("RAW DATA:", data)
             try:
                 parsed = json.loads(data)
             except:
