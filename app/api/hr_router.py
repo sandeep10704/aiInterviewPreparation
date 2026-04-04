@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, WebSocket
 from pydantic import BaseModel
 from typing import Dict
 from app.core.firebase import verify_token
