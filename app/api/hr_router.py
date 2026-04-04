@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import Dict
+from app.core.firebase import verify_token
+from app.services.hr.hr_service_realtime import update_hr_answer_and_evaluate
 from app.core.security import get_current_user
 from app.services.hr.hr_service import (
     generate_hr_set,
@@ -107,3 +109,73 @@ async def submit_hr_answers_route(
         payload.hr_set_id,
         payload.answers
     )
+
+
+@router.websocket("/ws")
+async def hr_ws(websocket: WebSocket):
+
+    print("HR WS STEP 1: HIT")
+
+    # ✅ Get token (same as technical)
+    token = websocket.query_params.get("token")
+
+    if not token:
+        auth_header = websocket.headers.get("authorization")
+        if auth_header:
+            try:
+                token = auth_header.split(" ")[1]
+            except:
+                pass
+
+    if not token:
+        await websocket.close(code=1008)
+        return
+
+    # ✅ Verify user
+    try:
+        decoded = verify_token(token)
+        user_id = decoded["uid"]
+        print("HR WS USER:", user_id)
+    except Exception as e:
+        print("HR WS TOKEN ERROR:", e)
+        await websocket.close(code=1008)
+        return
+
+    # ✅ Accept connection
+    await websocket.accept()
+    print("HR WS CONNECTED")
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            print("HR WS RECEIVED:", data)
+
+            try:
+                parsed = json.loads(data)
+            except:
+                await websocket.send_json({"error": "Invalid JSON"})
+                continue
+
+            # ✅ Expected input:
+            # {
+            #   "hr_set_id": "...",
+            #   "question_no": 1,
+            #   "answer": "..."
+            # }
+
+            try:
+                result = await update_hr_answer_and_evaluate(
+                    user_id,
+                    parsed.get("hr_set_id"),
+                    parsed.get("question_no"),
+                    parsed.get("answer")
+                )
+
+                await websocket.send_json(result)
+
+            except Exception as e:
+                print("HR WS ERROR:", e)
+                await websocket.send_json({"error": "Processing failed"})
+
+    except Exception as e:
+        print("HR WS CLOSED:", e)
