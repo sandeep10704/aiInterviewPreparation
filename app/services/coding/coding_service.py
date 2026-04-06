@@ -3,7 +3,7 @@ from datetime import datetime
 from app.core.firebase import db
 from app.services.coding.coding_graph import coding_graph
 from app.services.coding.coding_evaluation_service import evaluate_code
-
+from app.services.llm.llm_core import llm
 async def generate_coding_set(user_id: str):
 
     user_ref = db.collection("users").document(user_id)
@@ -70,3 +70,83 @@ async def submit_coding_solution(
     })
 
     return evaluation
+
+
+
+
+
+
+
+async def explain_question(state):
+
+    prompt = f"""
+You are coding interviewer.
+
+Explain problem to candidate.
+
+Question:
+{state["question"]}
+
+Rules:
+- explain clearly
+- mention input output
+- mention constraints
+- do not give solution
+- friendly interviewer tone
+"""
+
+    response = llm.chat([
+        {"role": "user", "content": prompt}
+    ])
+
+    return response.content
+
+
+async def generate_typing_hint(state):
+
+    prompt = f"""
+You are coding interviewer watching typing.
+
+Question:
+{state["question"]}
+
+Candidate code:
+{state["code"]}
+
+Previous code:
+{state.get("previous_code")}
+
+Rules:
+- give hint only if needed
+- otherwise return SILENT
+- do not give solution
+- short hint
+"""
+
+    res = llm.chat([
+        {"role": "user", "content": prompt}
+    ])
+
+    return res.content.strip()
+
+
+async def generate_run_hint(state):
+
+    prompt = f"""
+Code execution finished.
+
+Results:
+{state["test_result"]}
+
+Candidate code:
+{state["code"]}
+
+Give interviewer hint.
+Do not give solution.
+"""
+
+    res = llm.chat([
+        {"role": "user", "content": prompt}
+    ])
+
+    return res.content

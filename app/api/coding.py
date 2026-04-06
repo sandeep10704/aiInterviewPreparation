@@ -6,7 +6,9 @@ from app.schemas.coding.coding_run_schema import CodingRunRequest
 from app.services.coding.coding_runner_service import run_user_code_preview
 from app.schemas.coding.coding_playground_schema import CodingPlaygroundRequest
 from app.services.coding.coding_playground_service import run_playground_code
-
+from fastapi import WebSocket
+from app.core.security import verify_token
+from app.services.coding.coding_ws_service import coding_ws_handler
 # ---------------------------------------------------------
 # Coding Interview Router
 # ---------------------------------------------------------
@@ -135,3 +137,26 @@ async def coding_playground(payload: CodingPlaygroundRequest):
         language=payload.language,
         stdin=payload.stdin
     )
+
+
+
+
+@router.websocket("/ws/coding")
+async def coding_ws(websocket: WebSocket):
+
+    token = websocket.query_params.get("token")
+
+    if not token:
+        await websocket.close(code=1008)
+        return
+
+    try:
+        decoded = verify_token(token)
+        user_id = decoded["uid"]
+    except:
+        await websocket.close(code=1008)
+        return
+
+    await websocket.accept()
+
+    await coding_ws_handler(websocket, user_id)
