@@ -1,7 +1,7 @@
 from app.services.coding.code_execution_service import run_code
 
 
-async def evaluate_code(script: str, test_cases: list):
+async def evaluate_code(script: str, test_cases: list, language="python"):
 
     results = []
     passed = 0
@@ -10,7 +10,8 @@ async def evaluate_code(script: str, test_cases: list):
 
         execution = await run_code(
             script,
-            stdin_input=test["input"]
+            stdin_input=test["input"],
+            language=language
         )
 
         output = execution.get("output", "").strip()

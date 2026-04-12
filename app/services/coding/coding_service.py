@@ -40,7 +40,8 @@ async def submit_coding_solution(
     user_id: str,
     coding_set_id: str,
     question_index: int,
-    code: str
+    code: str,
+    language: str = "python"
 ):
 
     doc_ref = db.collection("users") \
@@ -58,7 +59,8 @@ async def submit_coding_solution(
 
     evaluation = await evaluate_code(
         code,
-        question["test_cases"]
+        question["test_cases"],
+        language
     )
 
     doc_ref.update({

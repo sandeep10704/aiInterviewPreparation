@@ -79,11 +79,12 @@ async def submit_code(
     Submit final coding solution for evaluation.
     """
     return await submit_coding_solution(
-        user_id,
-        payload.coding_set_id,
-        payload.question_index,
-        payload.code
-    )
+    user_id,
+    payload.coding_set_id,
+    payload.question_index,
+    payload.code,
+    payload.language
+)
 
 
 # ---------------------------------------------------------
