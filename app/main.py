@@ -1,17 +1,10 @@
 from fastapi import FastAPI
 from app.api.router import api_router
 from fastapi.middleware.cors import CORSMiddleware
+
 # ---------------------------------------------------------
 # FastAPI Application Initialization
 # ---------------------------------------------------------
-# This application provides APIs for:
-# - Resume Analysis
-# - Technical Interview Preparation
-# - HR Interview Simulation
-# - Coding Practice & Evaluation
-# - Coding Playground Execution
-# ---------------------------------------------------------
-
 app = FastAPI(
     title="AI Interview Preparation API",
     version="1.0.0",
@@ -32,23 +25,22 @@ Most endpoints require Firebase Bearer Token authentication.
 """,
 )
 
-# Register all application routers
-app.include_router(api_router)
-
-
-
-origins = [
-    "http://localhost:5173",
-    "https://interview-preparation-frontend-topaz.vercel.app",
-]
-
+# ---------------------------------------------------------
+# CORS Middleware (MUST BE BEFORE ROUTERS)
+# ---------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # allow all for now
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ---------------------------------------------------------
+# Register Routers
+# ---------------------------------------------------------
+app.include_router(api_router)
+
 # ---------------------------------------------------------
 # Root Endpoint (Health Check)
 # ---------------------------------------------------------
@@ -59,10 +51,4 @@ app.add_middleware(
     tags=["System"]
 )
 def root():
-    """
-    Health check endpoint.
-
-    Returns:
-        dict: API running status message.
-    """
     return {"message": "API is running"}
