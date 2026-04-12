@@ -150,3 +150,82 @@ Do not give solution.
     ])
 
     return res.content
+
+
+
+
+
+async def get_coding_sets(user_id: str):
+
+    docs = db.collection("users") \
+        .document(user_id) \
+        .collection("coding_questions") \
+        .stream()
+
+    result = []
+
+    for doc in docs:
+        data = doc.to_dict()
+
+        result.append({
+            "coding_set_id": data["coding_set_id"],
+            "status": data.get("status"),
+            "created_at": data.get("created_at")
+        })
+
+    return result
+
+
+
+async def get_coding_set_questions(user_id: str, coding_set_id: str):
+
+    doc = db.collection("users") \
+        .document(user_id) \
+        .collection("coding_questions") \
+        .document(coding_set_id) \
+        .get()
+
+    if not doc.exists:
+        raise ValueError("Coding set not found")
+
+    data = doc.to_dict()
+
+    questions = data["questions"]
+
+    for q in questions:
+        q["test_cases"] = q.get("test_cases", [])[:3]
+
+    return {
+        "coding_set_id": coding_set_id,
+        "questions": questions
+    }
+
+    doc = db.collection("users") \
+        .document(user_id) \
+        .collection("coding_questions") \
+        .document(coding_set_id) \
+        .get()
+
+    if not doc.exists:
+        raise ValueError("Coding set not found")
+
+    data = doc.to_dict()
+
+    questions = data["questions"]
+
+    # return only first 3 test cases
+    formatted_questions = []
+
+    for q in questions:
+        formatted_questions.append({
+            "question": q["question"],
+            "function_signature": q.get("function_signature"),
+            "examples": q.get("examples"),
+            "constraints": q.get("constraints"),
+            "test_cases": q["test_cases"][:3]
+        })
+
+    return {
+        "coding_set_id": coding_set_id,
+        "questions": formatted_questions
+    }

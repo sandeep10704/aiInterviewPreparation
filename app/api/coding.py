@@ -9,6 +9,12 @@ from app.services.coding.coding_playground_service import run_playground_code
 from fastapi import WebSocket
 from app.core.security import verify_token
 from app.services.coding.coding_ws_service import coding_ws_handler
+from app.services.coding.coding_service import (
+    generate_coding_set,
+    submit_coding_solution,
+    get_coding_sets,
+    get_coding_set_questions
+)
 # ---------------------------------------------------------
 # Coding Interview Router
 # ---------------------------------------------------------
@@ -160,3 +166,31 @@ async def coding_ws(websocket: WebSocket):
     await websocket.accept()
 
     await coding_ws_handler(websocket, user_id)
+
+@router.get(
+    "/sets",
+    summary="Get Coding Sets",
+    description="Returns all coding interview set IDs for user"
+)
+async def get_sets(
+    user_id: str = Depends(get_current_user)
+):
+    return await get_coding_sets(user_id)
+
+@router.get(
+    "/sets/{coding_set_id}",
+    summary="Get Coding Set Questions",
+    description="""
+Returns:
+- questions
+- first 3 test cases
+"""
+)
+async def get_set_questions(
+    coding_set_id: str,
+    user_id: str = Depends(get_current_user)
+):
+    return await get_coding_set_questions(
+        user_id,
+        coding_set_id
+    )
