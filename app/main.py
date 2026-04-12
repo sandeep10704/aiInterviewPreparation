@@ -39,7 +39,7 @@ app.include_router(api_router)
 
 origins = [
     "http://localhost:5173",
-    "https://interview-preparation-frontend-topaz.vercel.app/",
+    "https://interview-preparation-frontend-topaz.vercel.app",
 ]
 
 app.add_middleware(
