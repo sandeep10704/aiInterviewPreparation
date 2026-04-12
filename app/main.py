@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.api.router import api_router
-
+from fastapi.middleware.cors import CORSMiddleware
 # ---------------------------------------------------------
 # FastAPI Application Initialization
 # ---------------------------------------------------------
@@ -36,6 +36,19 @@ Most endpoints require Firebase Bearer Token authentication.
 app.include_router(api_router)
 
 
+
+origins = [
+    "http://localhost:5173",
+    "https://interview-preparation-frontend-topaz.vercel.app/",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,   # or ["*"] for testing
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # ---------------------------------------------------------
 # Root Endpoint (Health Check)
 # ---------------------------------------------------------
