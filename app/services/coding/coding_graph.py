@@ -1,4 +1,7 @@
 from typing import TypedDict, List
+import random
+import time
+
 from langgraph.graph import StateGraph
 from tavily import TavilyClient
 
@@ -21,16 +24,24 @@ class CodingGraphState(TypedDict):
 # ---------- NODE 1 ----------
 def extract_tech_context_node(state: CodingGraphState):
 
+    start = time.time()
+    print("\n========== NODE: extract_context ==========", flush=True)
+
     resume = state["resume_data"]
+    print("Resume keys:", resume.keys(), flush=True)
 
     languages = [
         s for s in resume.get("skills", [])
         if s.lower() in ["python", "java", "c", "c++", "javascript", "php"]
     ]
 
+    print("Detected Languages:", languages, flush=True)
+
     project_desc = "\n".join(
         [p.get("project_description", "") for p in resume.get("projects", [])]
     )
+
+    print("Project description length:", len(project_desc), flush=True)
 
     context = f"""
 Programming Languages:
@@ -40,38 +51,76 @@ Project Descriptions:
 {project_desc}
 """
 
+    print(
+        f"extract_context finished in {time.time()-start:.2f}s",
+        flush=True
+    )
+
     return {"tech_context": context}
 
 
 # ---------- NODE 2 ----------
 def research_node(state: CodingGraphState):
 
-    resume = state["resume_data"]
+    start = time.time()
+    print("\n========== NODE: research ==========", flush=True)
 
-    languages = [
-        s for s in resume.get("skills", [])
-        if s.lower() in ["python", "java", "c", "c++", "javascript", "php"]
+    topics = [
+        "sliding window hard",
+        "graph dfs bfs hard",
+        "tree dp hard",
+        "heap priority queue medium",
+        "binary search tricky",
+        "dynamic programming hard",
+        "backtracking recursion hard",
+        "two pointers tricky",
+        "monotonic stack hard",
+        "union find graph",
+        "topological sort hard",
+        "shortest path dijkstra",
+        "segment tree range query",
+        "interval merging tricky",
+        "matrix bfs dfs"
     ]
 
-    project_titles = [
-        p.get("project_name", "")
-        for p in resume.get("projects", [])
-    ]
+    selected_topics = random.sample(topics, 3)
+    print("Selected Topics:", selected_topics, flush=True)
 
     query = f"""
-Coding interview questions medium and hard level
-for {', '.join(languages[:3])}
-related to {', '.join(project_titles[:2])}
-"""[:380]
+LeetCode style FAANG coding interview problems
+{", ".join(selected_topics)}
+
+Include:
+- medium and hard
+- tricky constraints
+- DSA problems
+- real interview questions
+"""[:400]
+
+    print("Calling Tavily...", flush=True)
+
+    tavily_start = time.time()
 
     result = tavily.search(
         query=query,
-        search_depth="basic",
-        max_results=3
+        search_depth="advanced",
+        max_results=5
+    )
+
+    print(
+        f"Tavily finished in {time.time()-tavily_start:.2f}s",
+        flush=True
     )
 
     research = " ".join(
         [r.get("content", "") for r in result.get("results", [])]
+    )
+
+    print("Research data length:", len(research), flush=True)
+
+    print(
+        f"research node finished in {time.time()-start:.2f}s",
+        flush=True
     )
 
     return {"research_data": research}
@@ -80,42 +129,36 @@ related to {', '.join(project_titles[:2])}
 # ---------- NODE 3 ----------
 async def generate_questions_node(state: CodingGraphState):
 
+    start = time.time()
+    print("\n========== NODE: generate_questions ==========", flush=True)
+
+    seed = random.randint(1, 100000)
+    print("Random Seed:", seed, flush=True)
+
     structured_llm = llm.with_structured_output(CodingQuestionSet)
 
     prompt = f"""
+Random Seed: {seed}
+
 You are an expert FAANG interview problem designer.
 
 IMPORTANT:
 Generate REAL interview-level DSA problems.
-DO NOT generate sample, example, tutorial, or practice explanations.
+
+TIME DIFFICULTY:
+Medium → 35-50 minutes
+Hard → 60-90 minutes
 
 STRICT RULES:
-- Problems must feel like real LeetCode interview questions.
-- Each problem must be ORIGINAL and self-contained.
-- DO NOT say "example problem", "sample problem", or "for practice".
-- DO NOT include explanations about how to solve.
-- DO NOT include hints or solutions.
-- Output must look like an actual coding assessment question.
+- Problems must feel like real LeetCode interview questions
+- Must require optimal solution
+- Brute force must TLE
+- Include tricky edge cases
+- Use multiple data structures
+- Problems must be ORIGINAL
 
-Generate EXACTLY:
-1 Medium DSA problem
-1 Hard DSA problem
-
-Allowed DSA Topics ONLY:
-Arrays, Strings, Hashing, Two Pointers, Sliding Window,
-Stack, Queue, Linked List, Trees, BST,
-Graphs (BFS/DFS), Greedy,
-Dynamic Programming,
-Binary Search,
-Heap / Priority Queue,
-Backtracking, Recursion.
-
-NOT ALLOWED:
-- Web/backend problems
-- ML problems
-- Theory questions
-- System design
-- Concept explanations
+DIVERSITY RULE:
+The two questions MUST be from DIFFERENT topics.
 
 Each problem MUST include:
 - clear algorithmic problem statement
@@ -124,23 +167,67 @@ Each problem MUST include:
 - output format
 - constraints
 - EXACTLY 6 deterministic test cases
-- edge cases included
 
-NO solutions.
-NO reasoning.
-NO tutorial text.
+NO solutions
+NO hints
 
 Candidate Tech Context:
-{state["tech_context"]}
+{state["tech_context"][:500]}
 
 Research Context:
-{state["research_data"]}
+{state["research_data"][:500]}
+
+Generate EXACTLY:
+1 Medium DSA problem
+1 Hard DSA problem
+
+DO NOT generate known LeetCode problems.
+DO NOT generate:
+- connect sticks
+- three subarrays
+- two sum
+- merge intervals
+- longest substring
+
+Create NEW unseen problems.
+Never repeat previous problem patterns:
+- subarray sum
+- sorting swaps
+- greedy merging
+- heap merging
+
+Use new topic each time.
 """
+
+    print("Prompt length:", len(prompt), flush=True)
+    print("Calling LLM...", flush=True)
+
+    llm_start = time.time()
 
     result = await structured_llm.ainvoke(prompt)
 
+    print(
+        f"LLM finished in {time.time()-llm_start:.2f}s",
+        flush=True
+    )
+
+    questions = [q.model_dump() for q in result.questions]
+
+    print("Generated Questions Count:", len(questions), flush=True)
+
+    for i, q in enumerate(questions):
+        print(
+            f"Question {i+1}: {q.get('title','No title')}",
+            flush=True
+        )
+
+    print(
+        f"generate_questions finished in {time.time()-start:.2f}s",
+        flush=True
+    )
+
     return {
-        "questions": [q.model_dump() for q in result.questions]
+        "questions": questions
     }
 
 
