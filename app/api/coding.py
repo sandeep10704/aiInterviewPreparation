@@ -13,7 +13,7 @@ from app.services.coding.coding_service import (
     get_coding_sets,
     get_coding_set_questions
 )
-
+from app.core.security import get_current_user_ws
 from app.services.coding.coding_runner_service import run_user_code_preview
 from app.services.coding.coding_playground_service import run_playground_code
 from app.services.coding.coding_ws_service import coding_ws_handler
@@ -152,23 +152,32 @@ async def coding_playground(payload: CodingPlaygroundRequest):
 
 
 
-@router.websocket("/ws/coding")
+# in your router file
+
+@router.websocket("/ws")
 async def coding_ws(websocket: WebSocket):
 
+    print("🔥 WS HIT")   # MUST print
+
     token = websocket.query_params.get("token")
+    print("🔑 TOKEN:", token[:30] if token else "None")
 
     if not token:
+        print("❌ NO TOKEN")
         await websocket.close(code=1008)
         return
 
     try:
-        decoded = verify_token(token)
-        user_id = decoded["uid"]
-    except:
+        from app.core.security import get_current_user_ws
+        user_id = await get_current_user_ws(token)
+        print("✅ AUTH SUCCESS:", user_id)
+    except Exception as e:
+        print("❌ WS AUTH ERROR:", e)
         await websocket.close(code=1008)
         return
 
     await websocket.accept()
+    print("🟢 WS CONNECTED")
 
     await coding_ws_handler(websocket, user_id)
 

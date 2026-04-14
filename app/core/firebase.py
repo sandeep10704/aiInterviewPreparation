@@ -25,6 +25,8 @@ db = firestore.client()
 def verify_token(id_token: str):
     try:
         decoded_token = auth.verify_id_token(id_token)
+        print("✅ TOKEN VERIFIED:", decoded_token["uid"])
         return decoded_token
-    except Exception:
+    except Exception as e:
+        print("❌ TOKEN VERIFY ERROR:", e)   # 🔥 IMPORTANT
         return None
