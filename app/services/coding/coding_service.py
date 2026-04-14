@@ -12,7 +12,7 @@ from app.services.llm.llm_core import llm
 # =========================
 # GENERATE CODING SET
 # =========================
-async def generate_coding_set(user_id: str):
+async def generate_coding_set(user_id: str, count: int, levels: list):
 
     sys.stdout.write("\n========== generate_coding_set START ==========\n")
     sys.stdout.flush()
@@ -49,7 +49,9 @@ async def generate_coding_set(user_id: str):
 
     result = await coding_graph.ainvoke(
         {
-            "resume_data": resume_data
+            "resume_data": resume_data,
+            "count": count,
+            "levels": levels
         }
     )
 
@@ -73,6 +75,8 @@ async def generate_coding_set(user_id: str):
         .document(coding_set_id) \
         .set({
             "coding_set_id": coding_set_id,
+            "count": count,
+            "levels": levels,
             "questions": questions,
             "answers": {},
             "status": "pending",

@@ -1,3 +1,4 @@
+from itertools import count
 from typing import TypedDict, List
 import random
 import time
@@ -16,6 +17,8 @@ tavily = TavilyClient(api_key=settings.TAVILY_API_KEY)
 # ---------- STATE ----------
 class CodingGraphState(TypedDict):
     resume_data: dict
+    count: int
+    levels: List[str]
     tech_context: str
     research_data: str
     questions: List[dict]
@@ -136,6 +139,12 @@ async def generate_questions_node(state: CodingGraphState):
     print("Random Seed:", seed, flush=True)
 
     structured_llm = llm.with_structured_output(CodingQuestionSet)
+    count = state["count"]
+    levels = state["levels"]
+
+    level_text = "\n".join(
+        [f"{count} {level.capitalize()} DSA problem(s)" for level in levels]
+)
 
     prompt = f"""
 Random Seed: {seed}
@@ -158,7 +167,7 @@ STRICT RULES:
 - Problems must be ORIGINAL
 
 DIVERSITY RULE:
-The two questions MUST be from DIFFERENT topics.
+All generated questions MUST be from DIFFERENT topics.
 
 Each problem MUST include:
 - clear algorithmic problem statement
@@ -178,8 +187,10 @@ Research Context:
 {state["research_data"][:500]}
 
 Generate EXACTLY:
-1 Medium DSA problem
-1 Hard DSA problem
+{level_text}
+
+LEVEL ORDER MUST MATCH:
+{levels}
 
 DO NOT generate known LeetCode problems.
 DO NOT generate:

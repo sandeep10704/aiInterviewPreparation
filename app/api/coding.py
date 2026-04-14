@@ -1,20 +1,22 @@
-from fastapi import APIRouter, Depends
-from app.core.security import get_current_user
-from app.services.coding.coding_service import generate_coding_set, submit_coding_solution
+from fastapi import APIRouter, Depends, WebSocket
+
+from app.core.security import get_current_user, verify_token
+
+from app.schemas.coding.QuestionRequest import QuestionRequest
 from app.schemas.coding.coding_submit_schema import CodingSubmitRequest
 from app.schemas.coding.coding_run_schema import CodingRunRequest
-from app.services.coding.coding_runner_service import run_user_code_preview
 from app.schemas.coding.coding_playground_schema import CodingPlaygroundRequest
-from app.services.coding.coding_playground_service import run_playground_code
-from fastapi import WebSocket
-from app.core.security import verify_token
-from app.services.coding.coding_ws_service import coding_ws_handler
+
 from app.services.coding.coding_service import (
     generate_coding_set,
     submit_coding_solution,
     get_coding_sets,
     get_coding_set_questions
 )
+
+from app.services.coding.coding_runner_service import run_user_code_preview
+from app.services.coding.coding_playground_service import run_playground_code
+from app.services.coding.coding_ws_service import coding_ws_handler
 # ---------------------------------------------------------
 # Coding Interview Router
 # ---------------------------------------------------------
@@ -31,7 +33,7 @@ router = APIRouter(tags=["Coding"])
 # ---------------------------------------------------------
 # Generate Coding Questions
 # ---------------------------------------------------------
-@router.get(
+@router.post(
     "/questions",
     summary="Generate Coding Questions",
     description="""
@@ -43,12 +45,14 @@ Returns:
 """
 )
 async def get_coding_questions(
+    payload: QuestionRequest,
     user_id: str = Depends(get_current_user)
 ):
-    """
-    Generate a new coding interview set for the authenticated user.
-    """
-    coding_set_id, questions = await generate_coding_set(user_id)
+    coding_set_id, questions = await generate_coding_set(
+        user_id,
+        payload.count,
+        payload.level
+    )
 
     return {
         "coding_set_id": coding_set_id,
